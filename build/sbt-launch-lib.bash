@@ -120,18 +120,6 @@ get_mem_opts () {
   echo "-Xms${mem}m -Xmx${mem}m -XX:ReservedCodeCacheSize=${codecache}m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/heap.bin"
 }
 
-# TODO(@jcasale): make sure that there are no issues with taking sbt default mem
-# old version:
-# get_mem_opts () {
-#  local mem=${1:-4096}
-#  local perm=$(( $mem / 4 ))
-#  (( $perm > 256 )) || perm=256
-#  (( $perm < 4096 )) || perm=4096
-#  local codecache=$(( $perm / 2 ))
-#
-#  echo "-Xms${mem}m -Xmx${mem}m -XX:ReservedCodeCacheSize=${codecache}m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/heap.bin"
-#}
-
 require_arg () {
   local type="$1"
   local opt="$2"

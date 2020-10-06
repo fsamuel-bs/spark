@@ -261,7 +261,7 @@
     </profile>
 
     <!--
-     Pull in hadoop-cloud and its associated JARs,
+     Pull in spark-hadoop-cloud and its associated JARs,
     -->
     <profile>
       <id>hadoop-cloud</id>

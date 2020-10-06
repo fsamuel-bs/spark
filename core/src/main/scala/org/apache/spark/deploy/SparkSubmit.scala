@@ -1178,6 +1178,7 @@ private[spark] object SparkSubmitUtils {
       cacheDirectory: File): String = {
     artifacts.map { artifactInfo =>
       val artifact = artifactInfo.asInstanceOf[Artifact].getModuleRevisionId
+      // palantir/spark: we have some weird test-dependencies that explode with the upstream code
       artifactInfo match {
         case mdArtifact: MDArtifact =>
           if (mdArtifact.getType.equals("test-jar")) {

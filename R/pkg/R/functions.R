@@ -2199,7 +2199,7 @@ setMethod("pmod", signature(y = "Column"),
             column(jc)
           })
 
-#' @param rsd maximum estimation error allowed (default = 0.05).
+#' @param rsd maximum relative standard deviation allowed (default = 0.05).
 #'
 #' @rdname column_aggregate_functions
 #' @aliases approx_count_distinct,Column-method
@@ -2321,7 +2321,7 @@ setMethod("n", signature(x = "Column"),
 #' \code{date_format}: Converts a date/timestamp/string to a value of string in the format
 #' specified by the date format given by the second argument. A pattern could be for instance
 #' \code{dd.MM.yyyy} and could return a string like '18.03.1993'. All
-#' pattern letters of \code{java.text.SimpleDateFormat} can be used.
+#' pattern letters of \code{java.time.format.DateTimeFormatter} can be used.
 #' Note: Use when ever possible specialized functions like \code{year}. These benefit from a
 #' specialized implementation.
 #'

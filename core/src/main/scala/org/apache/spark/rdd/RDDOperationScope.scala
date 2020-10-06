@@ -46,6 +46,7 @@ import org.apache.spark.internal.Logging
 @JsonPropertyOrder(Array("id", "name", "parent"))
 private[spark] class RDDOperationScope(
     val name: String,
+    // TODO(@jcasale): is this necessary?
     @JsonSerialize(typing = JsonSerialize.Typing.STATIC)
     val parent: Option[RDDOperationScope] = None,
     val id: String = RDDOperationScope.nextScopeId().toString) {
