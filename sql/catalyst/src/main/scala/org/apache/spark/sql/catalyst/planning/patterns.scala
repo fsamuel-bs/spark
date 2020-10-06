@@ -33,26 +33,6 @@ trait OperationHelper {
       case a: Alias => (a.toAttribute, a.child)
     })
 
-  private def hasOversizedRepeatedAliases(fields: Seq[Expression],
-                                          aliases: Map[Attribute, Expression]): Boolean = {
-    // Count how many times each alias is used in the fields.
-    // If an alias is only used once, we can safely substitute it without increasing the overall
-    // tree size
-    val referenceCounts = AttributeMap(
-      fields
-        .flatMap(_.collect { case a: Attribute => a })
-        .groupBy(identity)
-        .mapValues(_.size).toSeq
-    )
-
-    // Check for any aliases that are used more than once, and are larger than the configured
-    // maximum size
-    aliases.exists({ case (attribute, expression) =>
-      referenceCounts.getOrElse(attribute, 0) > 1 &&
-        expression.treeSize > SQLConf.get.maxRepeatedAliasSize
-    })
-  }
-
   protected def substitute(aliases: AttributeMap[Expression])(expr: Expression): Expression = {
     // use transformUp instead of transformDown to avoid dead loop
     // in case of there's Alias whose exprId is the same as its child attribute.
@@ -83,6 +63,26 @@ object PhysicalOperation extends OperationHelper with PredicateHelper {
     Some((fields.getOrElse(child.output), filters, child))
   }
 
+  private def hasOversizedRepeatedAliases(fields: Seq[Expression],
+                                          aliases: Map[Attribute, Expression]): Boolean = {
+    // Count how many times each alias is used in the fields.
+    // If an alias is only used once, we can safely substitute it without increasing the overall
+    // tree size
+    val referenceCounts = AttributeMap(
+      fields
+        .flatMap(_.collect { case a: Attribute => a })
+        .groupBy(identity)
+        .mapValues(_.size).toSeq
+    )
+
+    // Check for any aliases that are used more than once, and are larger than the configured
+    // maximum size
+    aliases.exists({ case (attribute, expression) =>
+      referenceCounts.getOrElse(attribute, 0) > 1 &&
+        expression.treeSize > SQLConf.get.maxRepeatedAliasSize
+    })
+  }
+
   /**
    * Collects all deterministic projects and filters, in-lining/substituting aliases if necessary.
    * Here are two examples for alias in-lining/substitution.
@@ -104,7 +104,7 @@ object PhysicalOperation extends OperationHelper with PredicateHelper {
         val (_, filters, other, aliases) = collectProjectsAndFilters(child)
         if (hasOversizedRepeatedAliases(fields, aliases)) {
           // Skip substitution if it could overly increase the overall tree size and risk OOMs
-          (None, Nil, plan, Map.empty)
+          (None, Nil, plan, AttributeMap.empty)
         } else {
           val substitutedFields = fields.map(substitute(aliases)).asInstanceOf[Seq[NamedExpression]]
           (Some(substitutedFields), filters, other, collectAliases(substitutedFields))
