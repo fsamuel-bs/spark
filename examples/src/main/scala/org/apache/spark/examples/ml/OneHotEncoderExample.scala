@@ -16,42 +16,41 @@
  */
 
 // scalastyle:off println
-package org.apache.spark.examples.mllib
+package org.apache.spark.examples.ml
 
-import org.apache.spark.SparkConf
-import org.apache.spark.SparkContext
 // $example on$
-import org.apache.spark.mllib.feature.Normalizer
-import org.apache.spark.mllib.util.MLUtils
+import org.apache.spark.ml.feature.OneHotEncoder
 // $example off$
+import org.apache.spark.sql.SparkSession
 
-object NormalizerExample {
-
+object OneHotEncoderExample {
   def main(args: Array[String]): Unit = {
+    val spark = SparkSession
+      .builder
+      .appName("OneHotEncoderExample")
+      .getOrCreate()
 
-    val conf = new SparkConf().setAppName("NormalizerExample")
-    val sc = new SparkContext(conf)
-
+    // Note: categorical features are usually first encoded with StringIndexer
     // $example on$
-    val data = MLUtils.loadLibSVMFile(sc, "data/mllib/sample_libsvm_data.txt")
+    val df = spark.createDataFrame(Seq(
+      (0.0, 1.0),
+      (1.0, 0.0),
+      (2.0, 1.0),
+      (0.0, 2.0),
+      (0.0, 1.0),
+      (2.0, 0.0)
+    )).toDF("categoryIndex1", "categoryIndex2")
 
-    val normalizer1 = new Normalizer()
-    val normalizer2 = new Normalizer(p = Double.PositiveInfinity)
+    val encoder = new OneHotEncoder()
+      .setInputCols(Array("categoryIndex1", "categoryIndex2"))
+      .setOutputCols(Array("categoryVec1", "categoryVec2"))
+    val model = encoder.fit(df)
 
-    // Each sample in data1 will be normalized using $L^2$ norm.
-    val data1 = data.map(x => (x.label, normalizer1.transform(x.features)))
-
-    // Each sample in data2 will be normalized using $L^\infty$ norm.
-    val data2 = data.map(x => (x.label, normalizer2.transform(x.features)))
+    val encoded = model.transform(df)
+    encoded.show()
     // $example off$
 
-    println("data1: ")
-    data1.collect.foreach(x => println(x))
-
-    println("data2: ")
-    data2.collect.foreach(x => println(x))
-
-    sc.stop()
+    spark.stop()
   }
 }
 // scalastyle:on println
